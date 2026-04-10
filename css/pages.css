@@ -1,0 +1,821 @@
+/* ==========================================================
+   PAGE-SPECIFIC STYLES — Hero, Search, Rooms, Detail, Form, Panel, Invoice
+   ========================================================== */
+
+/* ==========================
+   HERO SECTION
+   ========================== */
+.hero {
+  position: relative;
+  height: 60vh;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 30%, #0F3460 60%, #1A1A2E 100%);
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(200, 169, 110, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(45, 106, 79, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(200, 169, 110, 0.05) 0%, transparent 70%);
+  animation: heroGlow 8s ease-in-out infinite alternate;
+}
+
+/* Decorative floating shapes in hero */
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border: 1px solid rgba(200, 169, 110, 0.08);
+  border-radius: 50%;
+  top: -80px;
+  right: -80px;
+  animation: floatShape 12s ease-in-out infinite;
+}
+
+@keyframes heroGlow {
+  0%   { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+@keyframes floatShape {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50%      { transform: translate(-20px, 20px) rotate(180deg); }
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  padding: var(--space-xl);
+  animation: fadeInUp 0.8s ease;
+}
+
+.hero__title {
+  font-size: 3.2rem;
+  margin-bottom: var(--space-md);
+  line-height: 1.15;
+}
+
+.hero__subtitle {
+  font-size: 1.15rem;
+  color: rgba(245, 240, 235, 0.7);
+  line-height: 1.7;
+}
+
+@media (max-width: 768px) {
+  .hero { height: 45vh; min-height: 300px; }
+  .hero__title { font-size: 2rem; }
+  .hero__subtitle { font-size: 1rem; }
+}
+
+/* ==========================
+   SEARCH SECTION
+   ========================== */
+.search-section {
+  padding: var(--space-3xl) 0;
+  margin-top: -60px;
+  position: relative;
+  z-index: 2;
+}
+
+.search-box {
+  background: var(--color-navy-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--glass-blur);
+  animation: fadeInUp 0.6s ease 0.2s backwards;
+}
+
+.search-box__title {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.search-form {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: flex-end;
+}
+
+.search-form__group {
+  flex: 1;
+}
+
+.search-form__btn {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ==========================
+   ROOMS GRID
+   ========================== */
+.rooms-section {
+  padding: var(--space-2xl) 0 var(--space-3xl);
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-xl);
+}
+
+@media (max-width: 768px) {
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Staggered entrance animation */
+.rooms-grid .room-card:nth-child(1) { animation-delay: 0.1s; }
+.rooms-grid .room-card:nth-child(2) { animation-delay: 0.2s; }
+.rooms-grid .room-card:nth-child(3) { animation-delay: 0.3s; }
+.rooms-grid .room-card:nth-child(4) { animation-delay: 0.4s; }
+.rooms-grid .room-card:nth-child(5) { animation-delay: 0.5s; }
+.rooms-grid .room-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* ==========================
+   PAGE HEADER
+   ========================== */
+.page-header {
+  padding: var(--space-2xl) 0 var(--space-xl);
+  background: linear-gradient(180deg, rgba(15, 52, 96, 0.3) 0%, transparent 100%);
+}
+
+.page-header__title {
+  font-size: 2.2rem;
+}
+
+.page-header__subtitle {
+  color: rgba(245, 240, 235, 0.6);
+  margin-top: var(--space-sm);
+}
+
+/* ==========================
+   ROOM DETAIL PAGE
+   ========================== */
+.room-detail {
+  padding: var(--space-xl) 0 var(--space-3xl);
+}
+
+.room-detail__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2xl);
+  animation: fadeInUp 0.5s ease;
+}
+
+.room-detail__visual {
+  border-radius: var(--radius-xl);
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  position: relative;
+}
+
+.room-detail__icon {
+  font-size: 6rem;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
+}
+
+.room-detail__number {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 1.5rem;
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(4px);
+}
+
+.room-detail__title {
+  font-size: 2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.room-detail__description {
+  color: rgba(245, 240, 235, 0.7);
+  line-height: 1.8;
+  margin-bottom: var(--space-xl);
+}
+
+.room-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.room-detail__meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.room-detail__amenities {
+  margin-bottom: var(--space-xl);
+}
+
+.room-detail__amenities h4 {
+  font-size: 1rem;
+  margin-bottom: var(--space-md);
+  color: var(--color-primary-light);
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.room-detail__amenities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.amenity-tag {
+  background: rgba(45, 106, 79, 0.15);
+  border: 1px solid rgba(45, 106, 79, 0.25);
+  color: var(--color-emerald-light);
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+/* ---- Pricing Card ---- */
+.pricing-card {
+  background: rgba(200, 169, 110, 0.06);
+  border: 1px solid rgba(200, 169, 110, 0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.pricing-card__row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  font-size: 0.95rem;
+  color: rgba(245, 240, 235, 0.7);
+}
+
+.pricing-card__row--highlight {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.pricing-card__divider {
+  height: 1px;
+  background: rgba(200, 169, 110, 0.2);
+  margin: var(--space-sm) 0;
+}
+
+.pricing-card__row--total {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  padding-top: var(--space-md);
+}
+
+@media (max-width: 768px) {
+  .room-detail__grid { grid-template-columns: 1fr; }
+  .room-detail__visual { min-height: 250px; }
+}
+
+/* ==========================
+   RESERVATION FORM PAGE
+   ========================== */
+.reservation-form-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-2xl);
+  padding: var(--space-xl) 0 var(--space-3xl);
+  animation: fadeInUp 0.5s ease;
+}
+
+.reservation-form-card {
+  background: var(--color-navy-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+}
+
+.form-section-title {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.reservation-summary-card {
+  background: var(--color-navy-light);
+  border: 1px solid rgba(200, 169, 110, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+}
+
+.summary-title {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-lg);
+  color: var(--color-primary);
+}
+
+.summary-room {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(200, 169, 110, 0.06);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+}
+
+.summary-room__icon {
+  font-size: 2rem;
+}
+
+.summary-room div {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-room strong {
+  font-size: 1.05rem;
+}
+
+.summary-room span {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 235, 0.6);
+}
+
+.summary-dates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.summary-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-date__label {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 235, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-date__value {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--glass-border);
+}
+
+.summary-total__value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+@media (max-width: 768px) {
+  .reservation-form-layout { grid-template-columns: 1fr; }
+  .reservation-summary-card { position: static; order: -1; }
+}
+
+/* ==========================
+   RESERVATION PANEL PAGE
+   ========================== */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  background: var(--color-navy-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-xl);
+  margin-bottom: var(--space-xl);
+  animation: fadeInUp 0.4s ease;
+}
+
+.status-bar__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.status-bar__id {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.status-bar__badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-bar__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+/* ---- Digital Key ---- */
+.digital-key-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  background: linear-gradient(135deg, rgba(200, 169, 110, 0.1), rgba(200, 169, 110, 0.02));
+  border: 1px solid rgba(200, 169, 110, 0.25);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-xl);
+  animation: fadeInUp 0.5s ease 0.1s backwards;
+}
+
+.digital-key-card__icon {
+  font-size: 3rem;
+  animation: keyPulse 2s ease-in-out infinite;
+}
+
+@keyframes keyPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+
+.digital-key-card__info h3 {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-xs);
+}
+
+.digital-key-card__code {
+  display: inline-block;
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(200, 169, 110, 0.1);
+  padding: 0.3rem 1rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.1em;
+  margin: var(--space-sm) 0;
+}
+
+.digital-key-card__info p {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 235, 0.5);
+}
+
+/* ---- Panel Grid ---- */
+.panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.panel-card {
+  background: var(--color-navy-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease backwards;
+}
+
+.panel-card:nth-child(2) { animation-delay: 0.15s; }
+
+.panel-card__title {
+  font-size: 1.1rem;
+  padding: var(--space-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.panel-card__content {
+  padding: var(--space-lg);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row__label {
+  color: rgba(245, 240, 235, 0.5);
+  font-size: 0.9rem;
+}
+
+.info-row__value {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.info-row--total {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 1px solid rgba(200, 169, 110, 0.2);
+  border-bottom: none;
+}
+
+.info-row--total .info-row__label {
+  color: var(--color-primary-light);
+  font-weight: 600;
+}
+
+.info-row--total .info-row__value {
+  color: var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.added-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.added-service-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .panel-grid { grid-template-columns: 1fr; }
+  .digital-key-card {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* ---- Services Section ---- */
+.services-section {
+  padding: var(--space-xl) 0 var(--space-3xl);
+}
+
+.services-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.services-grid .service-card:nth-child(1) { animation-delay: 0.05s; }
+.services-grid .service-card:nth-child(2) { animation-delay: 0.10s; }
+.services-grid .service-card:nth-child(3) { animation-delay: 0.15s; }
+.services-grid .service-card:nth-child(4) { animation-delay: 0.20s; }
+.services-grid .service-card:nth-child(5) { animation-delay: 0.25s; }
+.services-grid .service-card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ==========================
+   INVOICE PAGE
+   ========================== */
+.invoice {
+  max-width: 800px;
+  margin: 0 auto var(--space-3xl);
+  background: var(--color-navy-light);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  box-shadow: var(--shadow-lg);
+  animation: fadeInUp 0.5s ease;
+}
+
+.invoice__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.invoice__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.invoice__logo {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.invoice__brand h2 {
+  font-size: 1.8rem;
+  color: var(--color-primary);
+}
+
+.invoice__brand p {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 235, 0.5);
+}
+
+.invoice__meta {
+  text-align: right;
+}
+
+.invoice__meta h3 {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  letter-spacing: 0.15em;
+}
+
+.invoice__meta p {
+  font-size: 0.9rem;
+  color: rgba(245, 240, 235, 0.6);
+  margin-top: 0.2rem;
+}
+
+.invoice__divider {
+  height: 2px;
+  background: linear-gradient(to right, var(--color-primary), transparent);
+  margin: var(--space-xl) 0;
+}
+
+.invoice__guest,
+.invoice__stay {
+  margin-bottom: var(--space-xl);
+}
+
+.invoice__guest h4,
+.invoice__stay h4,
+.invoice__items h4 {
+  font-size: 1rem;
+  color: var(--color-primary-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-md);
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.invoice__guest p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: rgba(245, 240, 235, 0.7);
+}
+
+.invoice__stay-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.invoice__stay-label {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(245, 240, 235, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.2rem;
+}
+
+.invoice__stay-grid span:not(.invoice__stay-label) {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .invoice__stay-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- Invoice Table ---- */
+.invoice__items {
+  margin-bottom: var(--space-xl);
+}
+
+.invoice__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice__table th {
+  text-align: left;
+  padding: var(--space-md) var(--space-sm);
+  border-bottom: 2px solid rgba(200, 169, 110, 0.25);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-light);
+}
+
+.invoice__table th:last-child {
+  text-align: right;
+}
+
+.invoice__table td {
+  padding: var(--space-md) var(--space-sm);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+  color: rgba(245, 240, 235, 0.8);
+}
+
+.invoice__table td:last-child {
+  text-align: right;
+  font-weight: 500;
+}
+
+/* ---- Invoice Totals ---- */
+.invoice__totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: var(--space-xl);
+}
+
+.invoice__total-row {
+  display: flex;
+  justify-content: space-between;
+  width: 280px;
+  padding: var(--space-sm) 0;
+  font-size: 0.95rem;
+  color: rgba(245, 240, 235, 0.7);
+}
+
+.invoice__total-row--grand {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 2px solid var(--color-primary);
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.invoice__footer {
+  text-align: center;
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--glass-border);
+}
+
+.invoice__footer p {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--color-primary-light);
+}
+
+.invoice__footer-note {
+  font-family: var(--font-body) !important;
+  font-size: 0.8rem !important;
+  color: rgba(245, 240, 235, 0.4) !important;
+  margin-top: var(--space-sm);
+}
+
+@media (max-width: 640px) {
+  .invoice { padding: var(--space-lg); }
+  .invoice__header { flex-direction: column; gap: var(--space-lg); }
+  .invoice__meta { text-align: left; }
+  .invoice__total-row { width: 100%; }
+}
