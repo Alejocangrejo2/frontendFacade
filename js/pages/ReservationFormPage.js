@@ -6,7 +6,7 @@ class ReservationFormPage extends Page {
 
   mount() {
     if (!window._selectedRoom || !window._searchDates) {
-      Toast.show('Primero seleccione una habitación', 'warning');
+      Toast.show('Primero seleccione una habitacion', 'warning');
       window.location.hash = '#/';
       return;
     }
@@ -21,48 +21,26 @@ class ReservationFormPage extends Page {
     this.container.innerHTML = `
       <div class="page-header">
         <div class="container">
-          <button class="btn btn--ghost btn--back" id="back-to-room">← Volver al detalle</button>
+          <button class="btn btn--ghost btn--back" id="back-to-room">Volver al detalle</button>
           <h1 class="page-header__title">Formulario de Reserva</h1>
         </div>
       </div>
       <div class="container">
         <div class="reservation-form-layout">
-          <!-- Guest Form -->
           <div class="reservation-form-card">
-            <h2 class="form-section-title">Datos del Huésped</h2>
+            <h2 class="form-section-title">Datos del Huesped</h2>
             <form id="guest-form" class="guest-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="guest-firstname">Nombre *</label>
-                  <input type="text" class="form-input" id="guest-firstname" placeholder="Ingrese su nombre" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="guest-lastname">Apellido *</label>
-                  <input type="text" class="form-input" id="guest-lastname" placeholder="Ingrese su apellido" required>
-                </div>
+              <div class="form-group">
+                <label class="form-label" for="guest-name">Nombre Completo *</label>
+                <input type="text" class="form-input" id="guest-name" placeholder="Ingrese su nombre completo" required>
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label" for="guest-doc-type">Tipo de Documento</label>
-                  <select class="form-input form-select" id="guest-doc-type">
-                    <option value="CC">Cédula de Ciudadanía</option>
-                    <option value="CE">Cédula de Extranjería</option>
-                    <option value="PP">Pasaporte</option>
-                    <option value="TI">Tarjeta de Identidad</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="guest-doc-number">Número de Documento *</label>
-                  <input type="text" class="form-input" id="guest-doc-number" placeholder="Ingrese su documento" required>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label" for="guest-email">Correo Electrónico *</label>
+                  <label class="form-label" for="guest-email">Correo Electronico *</label>
                   <input type="email" class="form-input" id="guest-email" placeholder="correo@ejemplo.com" required>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="guest-phone">Teléfono *</label>
+                  <label class="form-label" for="guest-phone">Telefono *</label>
                   <input type="tel" class="form-input" id="guest-phone" placeholder="+57 300 123 4567" required>
                 </div>
               </div>
@@ -72,14 +50,12 @@ class ReservationFormPage extends Page {
             </form>
           </div>
 
-          <!-- Sidebar Summary -->
           <div class="reservation-summary-card">
             <h3 class="summary-title">Resumen de Reserva</h3>
             <div class="summary-room">
-              <span class="summary-room__icon">${room.getTypeIcon()}</span>
               <div>
                 <strong>${room.getTypeLabel()}</strong>
-                <span>Habitación ${room.number}</span>
+                <span>Habitacion ${room.number}</span>
               </div>
             </div>
             <div class="summary-dates">
@@ -117,10 +93,7 @@ class ReservationFormPage extends Page {
 
   async _submitReservation() {
     const guest = new Guest({
-      firstName: document.getElementById('guest-firstname').value,
-      lastName: document.getElementById('guest-lastname').value,
-      documentType: document.getElementById('guest-doc-type').value,
-      documentNumber: document.getElementById('guest-doc-number').value,
+      name: document.getElementById('guest-name').value,
       email: document.getElementById('guest-email').value,
       phone: document.getElementById('guest-phone').value
     });
@@ -139,35 +112,23 @@ class ReservationFormPage extends Page {
       const room = window._selectedRoom;
       const dates = window._searchDates;
 
+      // Match backend ReservationRequest DTO
       const reservationData = {
-        guest: {
-          firstName: guest.firstName,
-          lastName: guest.lastName,
-          documentType: guest.documentType,
-          documentNumber: guest.documentNumber,
-          email: guest.email,
-          phone: guest.phone
-        },
-        room: {
-          id: room.id,
-          type: room.type,
-          number: room.number,
-          pricePerNight: window._priceInfo.pricePerNight,
-          capacity: room.capacity,
-          amenities: room.amenities,
-          description: room.description
-        },
+        guestName: guest.name,
+        guestEmail: guest.email,
+        guestPhone: guest.phone,
+        roomNumber: room.number,
         checkInDate: dates.checkIn,
         checkOutDate: dates.checkOut
       };
 
-      const result = await this.api.post('/reservations', reservationData);
+      const result = await this.api.createReservation(reservationData);
       window._currentReservation = result;
 
-      Toast.show('¡Reserva creada exitosamente!', 'success');
+      Toast.show('Reserva creada exitosamente!', 'success');
       window.location.hash = '#/panel';
     } catch (error) {
-      Toast.show('Error al crear la reserva', 'error');
+      Toast.show('Error al crear la reserva: ' + (error.message || ''), 'error');
       btn.innerHTML = 'Confirmar Reserva';
       btn.disabled = false;
     }

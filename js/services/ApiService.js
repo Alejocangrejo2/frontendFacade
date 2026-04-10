@@ -1,10 +1,10 @@
 class ApiService {
 
-  static MOCK_MODE = true;
+  static MOCK_MODE = false;
   static instance = null;
 
   constructor() {
-    this.baseUrl = 'http://localhost:8080/api';
+    this.baseUrl = 'http://localhost:8080/api/hotel';
   }
 
   static getInstance() {
@@ -14,6 +14,7 @@ class ApiService {
     return ApiService.instance;
   }
 
+  // HTTP methods with ApiResponse unwrapping
 
   async get(endpoint) {
     if (ApiService.MOCK_MODE) return this._mockResponse('GET', endpoint);
@@ -45,243 +46,177 @@ class ApiService {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: data ? JSON.stringify(data) : undefined
       });
       return this._handleResponse(response);
     } catch (error) {
       this._handleError(error);
     }
   }
-
-  async delete(endpoint) {
-    if (ApiService.MOCK_MODE) return this._mockResponse('DELETE', endpoint);
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        method: 'DELETE'
-      });
-      return this._handleResponse(response);
-    } catch (error) {
-      this._handleError(error);
-    }
-  }
-
 
   async _handleResponse(response) {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error del servidor'
-      }));
-      throw new Error(error.message || `Error ${response.status}`);
+    const json = await response.json();
+
+    // Backend wraps all responses in {success, message, data}
+    if (json.success !== undefined) {
+      if (!json.success) {
+        throw new Error(json.message || 'Error del servidor');
+      }
+      return json.data;
     }
-    return response.json();
+
+    if (!response.ok) {
+      throw new Error(json.message || `Error ${response.status}`);
+    }
+    return json;
   }
 
   _handleError(error) {
     console.error('API Error:', error);
-    Toast.show(error.message || 'Error de conexión con el servidor', 'error');
+    Toast.show(error.message || 'Error de conexion con el servidor', 'error');
     throw error;
   }
 
+  // ---- High-level API methods matching backend endpoints ----
 
-  _getMockRooms() {
+  async searchRooms(checkIn, checkOut, type) {
+    let endpoint = `/disponibilidad?checkIn=${checkIn}&checkOut=${checkOut}`;
+    if (type) endpoint += `&type=${type}`;
+    return this.get(endpoint);
+  }
+
+  async createReservation(data) {
+    return this.post('/reservar', data);
+  }
+
+  async getReservation(reservaId) {
+    return this.get(`/reserva/${reservaId}`);
+  }
+
+  async doCheckIn(reservaId) {
+    return this.put(`/checkin/${reservaId}`);
+  }
+
+  async doCheckOut(reservaId) {
+    return this.put(`/checkout/${reservaId}`);
+  }
+
+  async addService(reservaId, serviceType) {
+    return this.post(`/servicios/${reservaId}`, { serviceType });
+  }
+
+  // Available service types (hardcoded since backend uses enum)
+  getAvailableServices() {
     return [
-      new Room({
-        id: 1, type: 'SUITE', number: '501',
-        pricePerNight: 350000, capacity: 4,
-        amenities: ['Wi-Fi', 'Mini Bar', 'Jacuzzi', 'Vista al Mar', 'Sala de Estar'],
-        available: true,
-        description: 'Nuestra suite más exclusiva con vista panorámica al mar, jacuzzi privado y sala de estar independiente.'
-      }),
-      new Room({
-        id: 2, type: 'DOBLE_DELUXE', number: '302',
-        pricePerNight: 180000, capacity: 3,
-        amenities: ['Wi-Fi', 'Mini Bar', 'Balcón', 'TV 55"'],
-        available: true,
-        description: 'Habitación doble con acabados de lujo, balcón privado y vista a los jardines.'
-      }),
-      new Room({
-        id: 3, type: 'SENCILLA', number: '105',
-        pricePerNight: 95000, capacity: 1,
-        amenities: ['Wi-Fi', 'TV 42"', 'Escritorio'],
-        available: true,
-        description: 'Habitación cómoda y funcional, ideal para viajeros de negocios.'
-      }),
-      new Room({
-        id: 4, type: 'SUITE_JUNIOR', number: '401',
-        pricePerNight: 250000, capacity: 3,
-        amenities: ['Wi-Fi', 'Mini Bar', 'Sala de Estar', 'TV 50"', 'Balcón'],
-        available: true,
-        description: 'Suite elegante con sala de estar integrada y todas las comodidades premium.'
-      }),
-      new Room({
-        id: 5, type: 'DOBLE', number: '203',
-        pricePerNight: 120000, capacity: 2,
-        amenities: ['Wi-Fi', 'TV 42"', 'Balcón'],
-        available: true,
-        description: 'Habitación doble estándar con decoración moderna y balcón privado.'
-      }),
-      new Room({
-        id: 6, type: 'SENCILLA_SUPERIOR', number: '108',
-        pricePerNight: 110000, capacity: 2,
-        amenities: ['Wi-Fi', 'Mini Bar', 'TV 42"', 'Escritorio'],
-        available: false,
-        description: 'Habitación sencilla con amenidades superiores y espacio adicional.'
-      })
+      new HotelService({ type: 'SPA', description: 'Sesion de Spa', cost: 50.0 }),
+      new HotelService({ type: 'BREAKFAST', description: 'Desayuno (por dia)', cost: 15.0 }),
+      new HotelService({ type: 'TRANSPORT', description: 'Transfer Aeropuerto', cost: 30.0 })
     ];
   }
 
-  _getMockServices() {
+  // ---- Mock data for offline development ----
+
+  _getMockRooms() {
     return [
-      new HotelService({ id: 1, name: 'Masaje Relajante', category: 'SPA', description: 'Masaje corporal completo de 60 minutos con aceites esenciales.', price: 80000 }),
-      new HotelService({ id: 2, name: 'Cena Gourmet', category: 'RESTAURANTE', description: 'Cena de 3 tiempos con maridaje de vinos seleccionados.', price: 55000 }),
-      new HotelService({ id: 3, name: 'Transfer Aeropuerto', category: 'TRANSPORTE', description: 'Servicio de transporte privado ida y vuelta al aeropuerto.', price: 40000 }),
-      new HotelService({ id: 4, name: 'Desayuno en Habitación', category: 'HABITACION', description: 'Desayuno buffet completo servido en la comodidad de su habitación.', price: 25000 }),
-      new HotelService({ id: 5, name: 'Tour por la Ciudad', category: 'TOUR', description: 'Recorrido guiado de 4 horas por los principales puntos turísticos.', price: 65000 }),
-      new HotelService({ id: 6, name: 'Lavandería Express', category: 'LAVANDERIA', description: 'Servicio de lavado y planchado entregado en 4 horas.', price: 30000 })
+      new Room({ number: 101, type: 'SINGLE', basePrice: 80.0, status: 'AVAILABLE' }),
+      new Room({ number: 102, type: 'SINGLE', basePrice: 80.0, status: 'AVAILABLE' }),
+      new Room({ number: 103, type: 'SINGLE', basePrice: 80.0, status: 'AVAILABLE' }),
+      new Room({ number: 201, type: 'DOUBLE', basePrice: 150.0, status: 'AVAILABLE' }),
+      new Room({ number: 202, type: 'DOUBLE', basePrice: 150.0, status: 'AVAILABLE' }),
+      new Room({ number: 203, type: 'DOUBLE', basePrice: 150.0, status: 'AVAILABLE' }),
+      new Room({ number: 301, type: 'SUITE', basePrice: 350.0, status: 'AVAILABLE' }),
+      new Room({ number: 302, type: 'SUITE', basePrice: 350.0, status: 'AVAILABLE' })
     ];
   }
 
   _mockResponse(method, endpoint, data) {
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (method === 'GET' && endpoint.startsWith('/rooms') && endpoint.includes('checkIn') && !endpoint.includes('/price')) {
+
+        if (method === 'GET' && endpoint.includes('/disponibilidad')) {
           const rooms = this._getMockRooms().filter(r => r.available);
-          resolve(rooms.map(r => ({ ...r })));
+          resolve(rooms.map(r => ({ number: r.number, type: r.type, basePrice: r.basePrice, status: r.status })));
           return;
         }
-        if (method === 'GET' && endpoint.includes('/price')) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const room = this._getMockRooms().find(r => r.id === id);
-          const params = new URLSearchParams(endpoint.split('?')[1]);
-          const checkIn = new Date(params.get('checkIn'));
-          const checkOut = new Date(params.get('checkOut'));
-          const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
 
-          // Dynamic pricing: high season = Dec, Jan, Jun, Jul
-          const month = checkIn.getMonth();
-          const isHighSeason = [0, 5, 6, 11].includes(month);
-          const multiplier = isHighSeason ? 1.3 : 1.0;
-          const pricePerNight = Math.round((room ? room.pricePerNight : 100000) * multiplier);
+        if (method === 'POST' && endpoint === '/reservar') {
+          const room = this._getMockRooms().find(r => r.number === data.roomNumber);
+          const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+          const nights = Math.ceil((new Date(data.checkOutDate) - new Date(data.checkInDate)) / (1000*60*60*24));
+          const isHigh = [0, 6, 7, 11].includes(new Date(data.checkInDate).getMonth());
+          const mult = isHigh ? 1.5 : 1.0;
+          const estimated = (room ? room.basePrice : 80) * mult * nights;
 
-          resolve({
-            roomId: id,
-            pricePerNight,
-            nights,
-            totalPrice: pricePerNight * nights,
-            isHighSeason,
-            seasonLabel: isHighSeason ? 'Temporada Alta' : 'Temporada Baja'
-          });
-          return;
-        }
-        if (method === 'GET' && /^\/rooms\/\d+$/.test(endpoint)) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const room = this._getMockRooms().find(r => r.id === id);
-          resolve(room ? { ...room } : null);
-          return;
-        }
-        if (method === 'POST' && endpoint === '/reservations') {
           const reservation = {
-            id: Math.floor(Math.random() * 10000) + 1,
-            ...data,
-            status: 'PENDIENTE',
-            services: [],
-            digitalKey: null
+            id, guestName: data.guestName, guestEmail: data.guestEmail, guestPhone: data.guestPhone,
+            room: room ? { number: room.number, type: room.type, basePrice: room.basePrice, status: 'RESERVED' } : null,
+            checkInDate: data.checkInDate, checkOutDate: data.checkOutDate,
+            nights, status: 'CONFIRMED', digitalKey: null, estimatedTotal: estimated
           };
-          if (!window._mockReservations) window._mockReservations = [];
-          window._mockReservations.push(reservation);
+          if (!window._mockReservations) window._mockReservations = {};
+          window._mockReservations[id] = reservation;
           resolve(reservation);
           return;
         }
-        if (method === 'GET' && /^\/reservations\/\d+$/.test(endpoint)) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const reservation = (window._mockReservations || []).find(r => r.id === id);
-          resolve(reservation || null);
-          return;
-        }
-        if (method === 'PUT' && endpoint.includes('/checkin')) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const reservation = (window._mockReservations || []).find(r => r.id === id);
-          if (reservation) {
-            reservation.status = 'CHECK_IN';
-            reservation.digitalKey = `KEY-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-          }
-          resolve(reservation ? { ...reservation } : null);
-          return;
-        }
-        if (method === 'PUT' && endpoint.includes('/checkout')) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const reservation = (window._mockReservations || []).find(r => r.id === id);
-          if (reservation) {
-            reservation.status = 'CHECK_OUT';
-            reservation.digitalKey = null;
-          }
-          resolve(reservation ? { ...reservation } : null);
-          return;
-        }
-        if (method === 'GET' && endpoint === '/services') {
-          resolve(this._getMockServices().map(s => ({ ...s })));
-          return;
-        }
-        if (method === 'POST' && endpoint.includes('/services')) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const reservation = (window._mockReservations || []).find(r => r.id === id);
-          if (reservation) {
-            const service = this._getMockServices().find(s => s.id === data.serviceId);
-            if (service && !reservation.services.find(s => s.id === service.id)) {
-              reservation.services.push({ ...service });
-            }
-          }
-          resolve(reservation ? { ...reservation } : null);
-          return;
-        }
-        if (method === 'DELETE' && endpoint.includes('/services/')) {
-          const parts = endpoint.split('/');
-          const reservationId = parseInt(parts[2]);
-          const serviceId = parseInt(parts[4]);
-          const reservation = (window._mockReservations || []).find(r => r.id === reservationId);
-          if (reservation) {
-            reservation.services = reservation.services.filter(s => s.id !== serviceId);
-          }
-          resolve(reservation ? { ...reservation } : null);
-          return;
-        }
-        if (method === 'GET' && endpoint.includes('/invoice')) {
-          const id = parseInt(endpoint.split('/')[2]);
-          const reservation = (window._mockReservations || []).find(r => r.id === id);
-          if (reservation) {
-            const room = new Room(reservation.room);
-            const nights = (() => {
-              const ci = new Date(reservation.checkInDate);
-              const co = new Date(reservation.checkOutDate);
-              return Math.ceil((co - ci) / (1000 * 60 * 60 * 24));
-            })();
-            const roomTotal = room.pricePerNight * nights;
-            const servicesTotal = (reservation.services || []).reduce((sum, s) => sum + s.price, 0);
-            const subtotal = roomTotal + servicesTotal;
-            const taxes = Math.round(subtotal * 0.19);
-            const total = subtotal + taxes;
 
-            const items = [
-              { description: `Habitación ${room.getTypeLabel()} — ${nights} noche(s)`, amount: roomTotal },
-              ...(reservation.services || []).map(s => ({ description: s.name, amount: s.price }))
-            ];
+        if (method === 'GET' && endpoint.includes('/reserva/')) {
+          const id = endpoint.split('/reserva/')[1];
+          resolve(window._mockReservations ? window._mockReservations[id] : null);
+          return;
+        }
+
+        if (method === 'PUT' && endpoint.includes('/checkin/')) {
+          const id = endpoint.split('/checkin/')[1];
+          const res = window._mockReservations ? window._mockReservations[id] : null;
+          if (res) {
+            res.status = 'CHECKED_IN';
+            res.digitalKey = 'KEY-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+          }
+          resolve(res);
+          return;
+        }
+
+        if (method === 'PUT' && endpoint.includes('/checkout/')) {
+          const id = endpoint.split('/checkout/')[1];
+          const res = window._mockReservations ? window._mockReservations[id] : null;
+          if (res) {
+            res.status = 'CHECKED_OUT';
+            res.digitalKey = null;
+            const nights = res.nights;
+            const basePrice = res.room.basePrice;
+            const isHigh = [0, 6, 7, 11].includes(new Date(res.checkInDate).getMonth());
+            const mult = isHigh ? 1.5 : 1.0;
+            const roomTotal = basePrice * mult * nights;
+            const svcs = res.services || [];
+            const svcTotal = svcs.reduce((s, sv) => s + (sv.cost || 0), 0);
 
             resolve({
-              id: Math.floor(Math.random() * 100000),
-              reservation,
-              subtotal,
-              taxes,
-              total,
-              generatedAt: new Date().toISOString(),
-              items
+              invoiceNumber: 'INV-' + id,
+              reservationId: id, guestName: res.guestName, guestEmail: res.guestEmail,
+              roomNumber: res.room.number, roomType: res.room.type,
+              nights, baseRoomCost: basePrice, seasonMultiplier: mult,
+              seasonLabel: isHigh ? 'HIGH' : 'LOW',
+              roomTotal, services: svcs, servicesTotal: svcTotal,
+              grandTotal: roomTotal + svcTotal, issuedAt: new Date().toISOString()
             });
-          } else {
-            resolve(null);
           }
           return;
         }
+
+        if (method === 'POST' && endpoint.includes('/servicios/')) {
+          const id = endpoint.split('/servicios/')[1];
+          const res = window._mockReservations ? window._mockReservations[id] : null;
+          if (res) {
+            if (!res.services) res.services = [];
+            const svc = new HotelService({ type: data.serviceType });
+            res.services.push({ type: svc.type, description: svc.description, cost: svc.price });
+            resolve({ type: svc.type, description: svc.description, cost: svc.price });
+          }
+          return;
+        }
+
         resolve(null);
-      }, 500); // Simulated network delay
+      }, 500);
     });
   }
 }

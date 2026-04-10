@@ -20,7 +20,7 @@ class ReservationPanelPage extends Page {
     this.container.innerHTML = `
       <div class="page-header">
         <div class="container">
-          <h1 class="page-header__title">Panel de Gestión</h1>
+          <h1 class="page-header__title">Panel de Gestion</h1>
           <p class="page-header__subtitle">Gestione su reserva, agregue servicios y realice check-in / check-out</p>
         </div>
       </div>
@@ -39,10 +39,7 @@ class ReservationPanelPage extends Page {
     try {
       const resData = window._currentReservation;
       this.reservation = new Reservation(resData);
-
-      const servicesData = await this.api.get('/services');
-      this.availableServices = servicesData.map(s => new HotelService(s));
-
+      this.availableServices = this.api.getAvailableServices();
       this._renderPanel();
     } catch (error) {
       Toast.show('Error al cargar los datos de la reserva', 'error');
@@ -53,55 +50,54 @@ class ReservationPanelPage extends Page {
     const res = this.reservation;
     const panel = document.getElementById('panel-content');
 
+    // Determine which services are already added
+    const addedTypes = (res.services || []).map(s => s.type);
+
     panel.innerHTML = `
-      <!-- Status Bar -->
       <div class="status-bar">
         <div class="status-bar__info">
           <span class="status-bar__id">Reserva #${res.id}</span>
           <span class="status-bar__badge" style="background: ${res.getStatusColor()}">${res.getStatusLabel()}</span>
         </div>
         <div class="status-bar__actions">
-          ${res.status === 'PENDIENTE' ? `
+          ${res.status === 'CONFIRMED' ? `
             <button class="btn btn--primary" id="checkin-btn">Realizar Check-In</button>
           ` : ''}
-          ${res.status === 'CHECK_IN' ? `
+          ${res.status === 'CHECKED_IN' ? `
             <button class="btn btn--secondary" id="checkout-btn">Realizar Check-Out</button>
           ` : ''}
-          ${res.status === 'CHECK_OUT' ? `
+          ${res.status === 'CHECKED_OUT' ? `
             <button class="btn btn--primary" id="invoice-btn">Ver Factura</button>
           ` : ''}
         </div>
       </div>
 
-      <!-- Digital Key (visible after check-in) -->
       ${res.digitalKey ? `
       <div class="digital-key-card">
         <div class="digital-key-card__icon">KEY</div>
         <div class="digital-key-card__info">
           <h3>Llave Digital</h3>
           <span class="digital-key-card__code">${res.digitalKey}</span>
-          <p>Use este código para acceder a su habitación</p>
+          <p>Use este codigo para acceder a su habitacion</p>
         </div>
       </div>
       ` : ''}
 
-      <!-- Info Grid -->
       <div class="panel-grid">
-        <!-- Reservation Summary Card -->
         <div class="panel-card">
           <h3 class="panel-card__title">Resumen de la Reserva</h3>
           <div class="panel-card__content">
             <div class="info-row">
-              <span class="info-row__label">Huésped</span>
-              <span class="info-row__value">${res.guest.getFullName()}</span>
+              <span class="info-row__label">Huesped</span>
+              <span class="info-row__value">${res.guestName}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">Documento</span>
-              <span class="info-row__value">${res.guest.documentType} ${res.guest.documentNumber}</span>
+              <span class="info-row__label">Email</span>
+              <span class="info-row__value">${res.guestEmail}</span>
             </div>
             <div class="info-row">
-              <span class="info-row__label">Habitación</span>
-              <span class="info-row__value">${res.room.getTypeLabel()} — Hab. ${res.room.number}</span>
+              <span class="info-row__label">Habitacion</span>
+              <span class="info-row__value">${res.room.getTypeLabel()} - Hab. ${res.room.number}</span>
             </div>
             <div class="info-row">
               <span class="info-row__label">Llegada</span>
@@ -116,38 +112,34 @@ class ReservationPanelPage extends Page {
               <span class="info-row__value">${res.getNights()}</span>
             </div>
             <div class="info-row info-row--total">
-              <span class="info-row__label">Precio Habitación</span>
-              <span class="info-row__value">$${(res.room.pricePerNight * res.getNights()).toLocaleString('es-CO')}</span>
+              <span class="info-row__label">Total Estimado</span>
+              <span class="info-row__value">$${res.estimatedTotal.toLocaleString('es-CO')}</span>
             </div>
           </div>
         </div>
 
-        <!-- Added Services Card -->
         <div class="panel-card">
           <h3 class="panel-card__title">Servicios Agregados</h3>
           <div class="panel-card__content" id="added-services">
-            ${res.services.length > 0 ? `
+            ${res.services && res.services.length > 0 ? `
               <div class="added-services-list">
-                ${res.services.map(s => {
-                  const svc = new HotelService(s);
-                  return `
+                ${res.services.map(s => `
                   <div class="added-service-item">
-                    <span>${svc.getCategoryIcon()} ${s.name}</span>
-                    <span>$${s.price.toLocaleString('es-CO')}</span>
-                  </div>`;
-                }).join('')}
+                    <span>${s.description || s.type}</span>
+                    <span>$${(s.cost || 0).toLocaleString('es-CO')}</span>
+                  </div>
+                `).join('')}
               </div>
               <div class="info-row info-row--total" style="margin-top: var(--space-md);">
                 <span class="info-row__label">Total Servicios</span>
                 <span class="info-row__value">$${res.getServicesTotal().toLocaleString('es-CO')}</span>
               </div>
-            ` : '<p class="empty-state">No se han agregado servicios aún</p>'}
+            ` : '<p class="empty-state">No se han agregado servicios aun</p>'}
           </div>
         </div>
       </div>
 
-      <!-- Available Services (hidden after check-out) -->
-      ${res.status !== 'CHECK_OUT' ? `
+      ${res.status === 'CHECKED_IN' ? `
       <div class="services-section">
         <h3 class="section-title">Servicios Disponibles</h3>
         <p class="section-subtitle">Agregue servicios adicionales a su estancia</p>
@@ -165,39 +157,31 @@ class ReservationPanelPage extends Page {
     if (!grid) return;
 
     grid.innerHTML = '';
-    const addedIds = (this.reservation.services || []).map(s => s.id);
+    const addedTypes = (this.reservation.services || []).map(s => s.type);
 
     this.availableServices.forEach(service => {
-      const isAdded = addedIds.includes(service.id);
+      const isAdded = addedTypes.includes(service.type);
       const card = new ServiceCard(
         service,
-        (svc, add) => this._toggleService(svc, add),
+        (svc, add) => { if (add) this._addService(svc); },
         isAdded
       );
       grid.appendChild(card.render());
     });
   }
 
-  async _toggleService(service, add) {
+  async _addService(service) {
     try {
-      let result;
-      if (add) {
-        result = await this.api.post(
-          `/reservations/${this.reservation.id}/services`,
-          { serviceId: service.id }
-        );
-        Toast.show(`${service.name} agregado`, 'success');
-      } else {
-        result = await this.api.delete(
-          `/reservations/${this.reservation.id}/services/${service.id}`
-        );
-        Toast.show(`${service.name} removido`, 'info');
-      }
-      window._currentReservation = result;
-      this.reservation = new Reservation(result);
+      await this.api.addService(this.reservation.id, service.type);
+      Toast.show(`${service.name} agregado`, 'success');
+
+      // Refresh reservation data
+      const updated = await this.api.getReservation(this.reservation.id);
+      window._currentReservation = updated;
+      this.reservation = new Reservation(updated);
       this._renderPanel();
     } catch (error) {
-      Toast.show('Error al actualizar servicios', 'error');
+      Toast.show('Error al agregar servicio: ' + (error.message || ''), 'error');
     }
   }
 
@@ -221,13 +205,13 @@ class ReservationPanelPage extends Page {
 
   async _doCheckIn() {
     try {
-      const result = await this.api.put(`/reservations/${this.reservation.id}/checkin`);
+      const result = await this.api.doCheckIn(this.reservation.id);
       window._currentReservation = result;
       this.reservation = new Reservation(result);
-      Toast.show('¡Check-In realizado! Se ha generado su llave digital.', 'success');
+      Toast.show('Check-In realizado! Se ha generado su llave digital.', 'success');
       this._renderPanel();
     } catch (error) {
-      Toast.show('Error al realizar el check-in', 'error');
+      Toast.show('Error al realizar el check-in: ' + (error.message || ''), 'error');
     }
   }
 
@@ -235,8 +219,8 @@ class ReservationPanelPage extends Page {
     const modal = new Modal(
       'Confirmar Check-Out',
       `
-        <p>¿Está seguro de que desea realizar el check-out?</p>
-        <p>Se generará la factura final de su estancia.</p>
+        <p>Esta seguro de que desea realizar el check-out?</p>
+        <p>Se generara la factura final de su estancia.</p>
         <div style="display: flex; gap: var(--space-md); margin-top: var(--space-lg);">
           <button class="btn btn--secondary btn--block" id="confirm-checkout">Confirmar</button>
           <button class="btn btn--ghost btn--block" id="cancel-checkout">Cancelar</button>
@@ -248,13 +232,19 @@ class ReservationPanelPage extends Page {
     document.getElementById('confirm-checkout').addEventListener('click', async () => {
       modal.close();
       try {
-        const result = await this.api.put(`/reservations/${this.reservation.id}/checkout`);
-        window._currentReservation = result;
-        this.reservation = new Reservation(result);
+        // Checkout returns the invoice directly from backend
+        const invoice = await this.api.doCheckOut(this.reservation.id);
+        window._invoiceData = invoice;
+
+        // Update reservation status locally
+        window._currentReservation.status = 'CHECKED_OUT';
+        window._currentReservation.digitalKey = null;
+        this.reservation = new Reservation(window._currentReservation);
+
         Toast.show('Check-Out realizado. Puede ver su factura.', 'success');
         this._renderPanel();
       } catch (error) {
-        Toast.show('Error al realizar el check-out', 'error');
+        Toast.show('Error al realizar el check-out: ' + (error.message || ''), 'error');
       }
     });
 
