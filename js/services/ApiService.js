@@ -3,8 +3,14 @@ class ApiService {
   static MOCK_MODE = false;
   static instance = null;
 
+  // PRODUCTION_URL: actualizar con la URL de Railway una vez desplegado
+  static PRODUCTION_URL = 'https://backendfacade-production.up.railway.app/api/hotel';
+
   constructor() {
-    this.baseUrl = 'http://localhost:8080/api/hotel';
+    const isLocal = window.location.hostname === 'localhost'
+                 || window.location.hostname === '127.0.0.1'
+                 || window.location.protocol === 'file:';
+    this.baseUrl = isLocal ? 'http://localhost:8080/api/hotel' : ApiService.PRODUCTION_URL;
   }
 
   static getInstance() {
